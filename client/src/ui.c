@@ -296,7 +296,7 @@ void PrintAndLogEx(logLevel_t level, const char *fmt, ...) {
 static void fPrintAndLog(FILE *stream, const char *fmt, ...) {
     va_list argptr;
     static FILE *logfile = NULL;
-    static int logging = 1;
+    static int logging = 0;  // close the log file output
     char buffer[MAX_PRINT_BUFFER] = {0};
     char buffer2[MAX_PRINT_BUFFER] = {0};
     char buffer3[MAX_PRINT_BUFFER] = {0};

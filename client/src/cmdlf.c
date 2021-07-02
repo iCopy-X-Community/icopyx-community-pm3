@@ -1361,12 +1361,12 @@ static bool CheckChipType(bool getDeviceData) {
     }
 
     // check for em4x50 chips
-    if (detect_4x50_block()) {
+    /*if (detect_4x50_block()) {
         PrintAndLogEx(SUCCESS, "Chipset detection: " _GREEN_("EM4x50"));
         PrintAndLogEx(HINT, "Hint: try " _YELLOW_("`lf em 4x50`") " commands");
         retval = true;
         goto out;
-    }
+    }*/
 
     PrintAndLogEx(NORMAL, "Couldn't identify a chipset");
 out:
@@ -1414,12 +1414,12 @@ int CmdLFfind(const char *Cmd) {
             }
         }
 
-        if (IfPm3EM4x50()) {
+        /*if (IfPm3EM4x50()) {
             if (read_em4x50_uid() == PM3_SUCCESS) {
                 PrintAndLogEx(SUCCESS, "\nValid " _GREEN_("EM4x50 ID") " found!");
                 return PM3_SUCCESS;
             }
-        }
+        }*/
 
         // only run if graphbuffer is just noise as it should be for hitag
         // The improved noise detection will find Cotag.
@@ -1451,7 +1451,6 @@ int CmdLFfind(const char *Cmd) {
     if (demodIOProx() == PM3_SUCCESS) { PrintAndLogEx(SUCCESS, "\nValid " _GREEN_("IO Prox ID") " found!"); goto out;}
     if (demodParadox() == PM3_SUCCESS) { PrintAndLogEx(SUCCESS, "\nValid " _GREEN_("Paradox ID") " found!"); goto out;}
     if (demodNexWatch() == PM3_SUCCESS) { PrintAndLogEx(SUCCESS, "\nValid " _GREEN_("NexWatch ID") " found!"); goto out;}
-    if (demodIndala() == PM3_SUCCESS) { PrintAndLogEx(SUCCESS, "\nValid " _GREEN_("Indala ID") " found!");  goto out;}
     if (demodEM410x() == PM3_SUCCESS) { PrintAndLogEx(SUCCESS, "\nValid " _GREEN_("EM410x ID") " found!"); goto out;}
     if (demodFDX(true) == PM3_SUCCESS) { PrintAndLogEx(SUCCESS, "\nValid " _GREEN_("FDX-B ID") " found!"); goto out;}
     if (demodGuard() == PM3_SUCCESS) { PrintAndLogEx(SUCCESS, "\nValid " _GREEN_("Guardall G-Prox II ID") " found!"); goto out; }
@@ -1466,6 +1465,7 @@ int CmdLFfind(const char *Cmd) {
     if (demodSecurakey() == PM3_SUCCESS) { PrintAndLogEx(SUCCESS, "\nValid " _GREEN_("Securakey ID") " found!"); goto out;}
     if (demodViking() == PM3_SUCCESS) { PrintAndLogEx(SUCCESS, "\nValid " _GREEN_("Viking ID") " found!"); goto out;}
     if (demodGallagher() == PM3_SUCCESS) { PrintAndLogEx(SUCCESS, "\nValid " _GREEN_("GALLAGHER ID") " found!"); goto out;}
+    if (demodIndala() == PM3_SUCCESS) { PrintAndLogEx(SUCCESS, "\nValid " _GREEN_("Indala ID") " found!");  goto out; }
 
 //    if (demodTI() == PM3_SUCCESS) { PrintAndLogEx(SUCCESS, "\nValid " _GREEN_("Texas Instrument ID") " found!"); goto out;}
 //    if (demodFermax() == PM3_SUCCESS) { PrintAndLogEx(SUCCESS, "\nValid " _GREEN_("Fermax ID") " found!"); goto out;}

@@ -376,9 +376,9 @@ static const char StrManufacturer[] = {
 };
 
 static const char StrProduct[] = {
-    20,         // Length
+    34,         // Length
     0x03,       // Type is string
-    'p', 0, 'r', 0, 'o', 0, 'x', 0, 'm', 0, 'a', 0, 'r', 0, 'k', 0, '3', 0
+    'p', 0, 'r', 0, 'o', 0, 'x', 0, 'm', 0, 'a', 0, 'r', 0, 'k', 0, '3', 0, '-', 0, 'n', 0, 'i', 0, 'k', 0, 'o', 0, 'l', 0, 'a', 0, 
 };
 
 static const char StrSerialNumber[] = {

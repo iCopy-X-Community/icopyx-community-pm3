@@ -90,6 +90,10 @@ static void showBanner_logo(LogoMode mode) {
 }
 
 static void showBanner(void) {
+	
+	if(true){
+		return;
+	}
 
     g_printAndLog = PRINTANDLOG_PRINT;
     PrintAndLogEx(NORMAL, "\n");
@@ -414,6 +418,7 @@ check_script:
                 // process cmd
                 g_pendingPrompt = false;
                 int ret = CommandReceived(cmd);
+				PrintAndLogEx(NORMAL, "\nNikola.D: %d", ret);
                 // exit or quit
                 if (ret == PM3_EFATAL)
                     break;

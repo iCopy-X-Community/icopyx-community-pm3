@@ -639,7 +639,7 @@ int CmdHW(const char *Cmd) {
 }
 
 void pm3_version(bool verbose, bool oneliner) {
-
+	if(true) return;
 #if defined(__MINGW64__)
 # define PM3CLIENTCOMPILER "MinGW-w64 "
 #elif defined(__MINGW32__)

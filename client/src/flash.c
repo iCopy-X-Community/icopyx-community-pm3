@@ -508,7 +508,8 @@ static int write_block(uint32_t address, uint8_t *data, uint32_t length) {
     memset(block_buf, 0xFF, BLOCK_SIZE);
     memcpy(block_buf, data, length);
     PacketResponseNG resp;
-    SendCommandBL(CMD_FINISH_WRITE, address, 0, 0, block_buf, length);
+    // SendCommandBL(CMD_FINISH_WRITE, address, 0, 0, block_buf, length);
+    SendCommandBL(CMD_FINISH_WRITE, address, CMD_ACK, CMD_ACK + CMD_NACK, block_buf, length);
     int ret = wait_for_ack(&resp);
     if (ret && resp.oldarg[0]) {
         uint32_t lock_bits = resp.oldarg[0] >> 16;

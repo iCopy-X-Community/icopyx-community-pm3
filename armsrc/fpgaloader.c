@@ -270,9 +270,9 @@ static void DownloadFPGA_byte(uint8_t w) {
 static void DownloadFPGA(int bitstream_version, int FpgaImageLen, lz4_streamp compressed_fpga_stream, uint8_t *output_buffer) {
     int i = 0;
 
-    AT91C_BASE_PIOA->PIO_OER = GPIO_FPGA_ON;
-    AT91C_BASE_PIOA->PIO_PER = GPIO_FPGA_ON;
-    HIGH(GPIO_FPGA_ON);  // ensure everything is powered on
+    // AT91C_BASE_PIOA->PIO_OER = GPIO_FPGA_ON;
+    // AT91C_BASE_PIOA->PIO_PER = GPIO_FPGA_ON;
+    // HIGH(GPIO_FPGA_ON);  // ensure everything is powered on
 
     SpinDelay(50);
 
@@ -282,10 +282,15 @@ static void DownloadFPGA(int bitstream_version, int FpgaImageLen, lz4_streamp co
     AT91C_BASE_PIOA->PIO_ODR =
         GPIO_FPGA_NINIT |
         GPIO_FPGA_DONE;
+
     // PIO controls the following pins
     AT91C_BASE_PIOA->PIO_PER =
         GPIO_FPGA_NINIT |
-        GPIO_FPGA_DONE;
+        GPIO_FPGA_DONE  |
+        //3S100E M2 & M3 PIO ENA
+        GPIO_SPCK |
+        GPIO_MOSI;
+
     // Enable pull-ups
     AT91C_BASE_PIOA->PIO_PPUER =
         GPIO_FPGA_NINIT |
@@ -295,12 +300,19 @@ static void DownloadFPGA(int bitstream_version, int FpgaImageLen, lz4_streamp co
     HIGH(GPIO_FPGA_NPROGRAM);
     LOW(GPIO_FPGA_CCLK);
     LOW(GPIO_FPGA_DIN);
+
     // These pins are outputs
     AT91C_BASE_PIOA->PIO_OER =
         GPIO_FPGA_NPROGRAM |
         GPIO_FPGA_CCLK     |
-        GPIO_FPGA_DIN;
+        GPIO_FPGA_DIN      |
+        //3S100E M2 & M3 OUTPUT ENA
+        GPIO_SPCK |
+        GPIO_MOSI;
 
+    //3S100E M2 & M3 OUTPUT HIGH		
+    HIGH(GPIO_SPCK);
+    HIGH(GPIO_MOSI);
     // enter FPGA configuration mode
     LOW(GPIO_FPGA_NPROGRAM);
     SpinDelay(50);
@@ -318,6 +330,12 @@ static void DownloadFPGA(int bitstream_version, int FpgaImageLen, lz4_streamp co
         LED_D_ON();
         return;
     }
+
+    //3S100E M2 & M3 RETURN TO NORMAL
+    LOW(GPIO_SPCK);
+    LOW(GPIO_MOSI);
+    AT91C_BASE_PIOA->PIO_PDR = GPIO_SPCK | GPIO_MOSI;
+    //
 
     for (i = 0; i < FpgaImageLen; i++) {
         int b = get_from_fpga_stream(bitstream_version, compressed_fpga_stream, output_buffer);
@@ -397,6 +415,41 @@ static int bitparse_find_section(int bitstream_version, char section_name, uint3
 }
 
 //----------------------------------------------------------------------------
+// Change FPGA image status, if image loaded.
+// bitstream_version is your new fpga image version
+// return true if can change.
+// return false if image is unloaded.
+//----------------------------------------------------------------------------
+bool FpgaConfCurrentMode(int bitstream_version) {
+    // fpga "XC3S100E" image merge
+    // If fpga image is no init
+    // We need load hf_lf_allinone.bit
+    if (downloaded_bitstream != 0) {
+        // test start
+        // PIO controls the following pins
+        AT91C_BASE_PIOA->PIO_PER = GPIO_FPGA_SWITCH;
+        // These pins are outputs
+        AT91C_BASE_PIOA->PIO_OER = GPIO_FPGA_SWITCH;
+
+        // try to turn off antenna
+        FpgaWriteConfWord(FPGA_MAJOR_MODE_OFF);
+
+        if (bitstream_version == FPGA_BITSTREAM_LF) {
+            LOW(GPIO_FPGA_SWITCH);
+        }
+        else {
+            HIGH(GPIO_FPGA_SWITCH);
+        }
+        // update downloaded_bitstream
+        downloaded_bitstream = bitstream_version;
+        // turn off antenna
+        FpgaWriteConfWord(FPGA_MAJOR_MODE_OFF);
+        return true;
+    }
+    return false;
+}
+
+//----------------------------------------------------------------------------
 // Check which FPGA image is currently loaded (if any). If necessary
 // decompress and load the correct (HF or LF) image to the FPGA
 //----------------------------------------------------------------------------
@@ -405,6 +458,12 @@ void FpgaDownloadAndGo(int bitstream_version) {
     // check whether or not the bitstream is already loaded
     if (downloaded_bitstream == bitstream_version) {
         FpgaEnableTracing();
+        return;
+    }
+
+    // If we can change image version
+    // direct return.
+    if (FpgaConfCurrentMode(bitstream_version)) {
         return;
     }
 
@@ -430,6 +489,10 @@ void FpgaDownloadAndGo(int bitstream_version) {
         DownloadFPGA(bitstream_version, bitstream_length, &compressed_fpga_stream, output_buffer);
         downloaded_bitstream = bitstream_version;
     }
+
+    // first download fpga image to hf
+    // we need to change fpga status to hf
+    FpgaConfCurrentMode(bitstream_version);
 
     // turn off antenna
     FpgaWriteConfWord(FPGA_MAJOR_MODE_OFF);

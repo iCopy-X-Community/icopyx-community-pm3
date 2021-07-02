@@ -113,39 +113,42 @@ static void UsbPacketReceived(uint8_t *packet) {
         break;
 
         case CMD_FINISH_WRITE: {
-            for (int j = 0; j < 2; j++) {
-                uint32_t flash_address = arg0 + (0x100 * j);
-                AT91PS_EFC efc_bank = AT91C_BASE_EFC0;
-                int offset = 0;
-                uint32_t page_n = (flash_address - ((uint32_t)_flash_start)) / AT91C_IFLASH_PAGE_SIZE;
-                if (page_n >= AT91C_IFLASH_NB_OF_PAGES / 2) {
-                    page_n -= AT91C_IFLASH_NB_OF_PAGES / 2;
-                    efc_bank = AT91C_BASE_EFC1;
-                    // We need to offset the writes or it will not fill the correct bank write buffer.
-                    offset = (AT91C_IFLASH_NB_OF_PAGES / 2) * AT91C_IFLASH_PAGE_SIZE / sizeof(uint32_t);
-                }
-                for (int i = 0 + (64 * j); i < 64 + (64 * j); i++) {
-                    _flash_start[offset + i] = c->d.asDwords[i];
-                }
+            if (c->arg[1] == CMD_ACK && c->arg[2] == (CMD_ACK + CMD_NACK)) {
+                for (int j = 0; j < 2; j++) {
+                    uint32_t flash_address = arg0 + (0x100 * j);
+                    AT91PS_EFC efc_bank = AT91C_BASE_EFC0;
+                    int offset = 0;
+                    uint32_t page_n = (flash_address - ((uint32_t)_flash_start)) / AT91C_IFLASH_PAGE_SIZE;
+                    if (page_n >= AT91C_IFLASH_NB_OF_PAGES / 2) {
+                        page_n -= AT91C_IFLASH_NB_OF_PAGES / 2;
+                        efc_bank = AT91C_BASE_EFC1;
+                        // We need to offset the writes or it will not fill the correct bank write buffer.
+                        offset = (AT91C_IFLASH_NB_OF_PAGES / 2) * AT91C_IFLASH_PAGE_SIZE / sizeof(uint32_t);
+                    }
+                    for (int i = 0 + (64 * j); i < 64 + (64 * j); i++) {
+                        _flash_start[offset + i] = c->d.asDwords[i];
+                    }
 
-                /* Check that the address that we are supposed to write to is within our allowed region */
-                if (((flash_address + AT91C_IFLASH_PAGE_SIZE - 1) >= end_addr) || (flash_address < start_addr)) {
-                    /* Disallow write */
-                    dont_ack = 1;
-                    reply_old(CMD_NACK, 0, 0, 0, 0, 0);
-                } else {
+                    /* Check that the address that we are supposed to write to is within our allowed region */
+                    if (((flash_address + AT91C_IFLASH_PAGE_SIZE - 1) >= end_addr) || (flash_address < start_addr)) {
+                        /* Disallow write */
+                        dont_ack = 1;
+                        reply_old(CMD_NACK, 0, 0, 0, 0, 0);
+                    }
+                    else {
 
-                    efc_bank->EFC_FCR = MC_FLASH_COMMAND_KEY |
-                                        MC_FLASH_COMMAND_PAGEN(page_n) |
-                                        AT91C_MC_FCMD_START_PROG;
-                }
+                        efc_bank->EFC_FCR = MC_FLASH_COMMAND_KEY |
+                            MC_FLASH_COMMAND_PAGEN(page_n) |
+                            AT91C_MC_FCMD_START_PROG;
+                    }
 
-                // Wait until flashing of page finishes
-                uint32_t sr;
-                while (!((sr = efc_bank->EFC_FSR) & AT91C_MC_FRDY));
-                if (sr & (AT91C_MC_LOCKE | AT91C_MC_PROGE)) {
-                    dont_ack = 1;
-                    reply_old(CMD_NACK, sr, 0, 0, 0, 0);
+                    // Wait until flashing of page finishes
+                    uint32_t sr;
+                    while (!((sr = efc_bank->EFC_FSR) & AT91C_MC_FRDY));
+                    if (sr & (AT91C_MC_LOCKE | AT91C_MC_PROGE)) {
+                        dont_ack = 1;
+                        reply_old(CMD_NACK, sr, 0, 0, 0, 0);
+                    }
                 }
             }
         }

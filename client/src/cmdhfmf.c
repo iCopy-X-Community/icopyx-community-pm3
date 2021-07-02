@@ -827,7 +827,7 @@ static int CmdHF14AMfRdSc(const char *Cmd) {
 
             uint8_t blocks = 4;
             uint8_t start = sectorNo * 4;
-            if (sectorNo > 32) {
+            if (sectorNo >= 32) {
                 blocks = 16;
                 start = 128 + (sectorNo - 32) * 16;
             }
@@ -1326,6 +1326,7 @@ static int CmdHF14AMfNested(const char *Cmd) {
     uint64_t key64 = 0;
     bool transferToEml = false;
     bool createDumpFile = false;
+    bool useflashMem = false;
 
     if (strlen(Cmd) < 3) return usage_hf14_nested();
 
@@ -1368,7 +1369,7 @@ static int CmdHF14AMfNested(const char *Cmd) {
         ctmp = tolower(param_getchar(Cmd, j));
         transferToEml |= (ctmp == 't');
         createDumpFile |= (ctmp == 'd');
-
+        useflashMem |= (ctmp == 'm');
         j++;
     }
 
@@ -1446,7 +1447,7 @@ static int CmdHF14AMfNested(const char *Cmd) {
         }
 
         PrintAndLogEx(SUCCESS, "Testing known keys. Sector count "_YELLOW_("%d"), SectorsCnt);
-        int res = mfCheckKeys_fast(SectorsCnt, true, true, 1, ARRAYLEN(g_mifare_default_keys) + 1, keyBlock, e_sector, false);
+        int res = mfCheckKeys_fast(SectorsCnt, true, true, 1, ARRAYLEN(g_mifare_default_keys) + 1, keyBlock, e_sector, useflashMem);
         if (res == PM3_SUCCESS) {
             PrintAndLogEx(SUCCESS, "Fast check found all keys");
             goto jumptoend;
@@ -3649,7 +3650,7 @@ static int CmdHF14AMfEGetSc(const char *Cmd) {
     PrintAndLogEx(NORMAL, "----+------------------------------------------------");
     uint8_t blocks = 4;
     uint8_t start = sector * 4;
-    if (sector > 32) {
+    if (sector >= 32) {
         blocks = 16;
         start = 128 + (sector - 32) * 16;
     }
@@ -4345,7 +4346,7 @@ static int CmdHF14AMfCGetSc(const char *Cmd) {
     PrintAndLogEx(NORMAL, "----+------------------------------------------------");
     uint8_t blocks = 4;
     uint8_t start = sector * 4;
-    if (sector > 32) {
+    if (sector >= 32) {
         blocks = 16;
         start = 128 + (sector - 32) * 16;
     }
