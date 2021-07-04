@@ -501,7 +501,6 @@ static bool find_double_listen_window(bool bcommand) {
                     // return although second listen window consists of one
                     // more bit period but this period is necessary for
                     // evaluating further pulse lengths
-
                     return true;
                 }
             }
@@ -525,7 +524,7 @@ static bool request_receive_mode(void) {
     // Because identification and sychronization at the same time is not
     // possible when using pulse lengths a double listen window is used.
     bool bcommand = true;
-    return find_double_listen_window(bcommand);;
+    return find_double_listen_window(bcommand);
 }
 
 static bool check_ack(bool bliw) {
@@ -764,7 +763,7 @@ static bool selective_read(uint8_t addresses[4]) {
 
         // send selective read command
         em4x50_send_byte_with_parity(EM4X50_COMMAND_SELECTIVE_READ);
-		
+
         // send address data
         em4x50_send_word(addresses);
 
@@ -835,16 +834,12 @@ void em4x50_read(em4x50_data_t *etd) {
     uint8_t addresses[] = {0x00, 0x00, 0x00, 0x00};
 
     init_tag();
-	
     em4x50_setup_read();
-	
 
     // set gHigh and gLow
     if (get_signalproperties() && find_em4x50_tag()) {
-		
 
         if (etd->addr_given) {
-			
 
             // selective read mode
 
@@ -854,14 +849,13 @@ void em4x50_read(em4x50_data_t *etd) {
 
             // only one word has to be read -> first word read = last word read
             addresses[2] = addresses[3] = etd->address;
-			
             bsuccess = selective_read(addresses);
-			
+
         } else {
 
             // standard read mode
             bsuccess = standard_read(&now);
-			
+
         }
     }
 
