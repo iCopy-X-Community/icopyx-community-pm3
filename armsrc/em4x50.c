@@ -1038,7 +1038,7 @@ void em4x50_wipe(em4x50_data_t *etd) {
 
     // set gHigh and gLow
     // if (get_signalproperties() && find_em4x50_tag()) {
-	if (get_signalproperties()) {
+    if (get_signalproperties()) {
 
         // login first
         if (login(etd->password)) {
