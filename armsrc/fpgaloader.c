@@ -420,7 +420,7 @@ static int bitparse_find_section(int bitstream_version, char section_name, uint3
 // return true if can change.
 // return false if image is unloaded.
 //----------------------------------------------------------------------------
-bool FpgaConfCurrentMode(int bitstream_version) {
+static bool FpgaConfCurrentMode(int bitstream_version) {
     // fpga "XC3S100E" image merge
     // If fpga image is no init
     // We need load hf_lf_allinone.bit
